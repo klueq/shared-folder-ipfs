@@ -115,3 +115,18 @@ interface LocalSharedFolderRepository {
   list(): Promise<string[]>;  
 }
 ```
+
+# CLI
+
+We can think of a command line interface built on top of the `shared-folder-ipfs` module:
+
+```
+$ shdir init
+1e3...447
+$ shdir set-rules /tmp/rules
+$ shdir add /tmp/foo.txt
+554...879
+$ shdir publish
+```
+ Under the hood it starts the IPFS daemon.
+ 
