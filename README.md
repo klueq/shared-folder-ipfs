@@ -1,4 +1,4 @@
-# WTF is this?
+# What is this?
 Think about a shared folder on an FTP server where many users can add files. In this folder there is also a special `rules` script that enforces certain rules about what files can be added, who can add them and so on. This shared folder has some disadvantages: there is an admin who is above the rules and all the files are stored in one place. The idea of this project is to use [IPFS](https://ipfs.io) to implement this shared folder pattern without the disadvantages: there won't be an admin and there won't be a single place where the files are stored.
 
 Why not to use IPFS directories? They are immutable. An IPFS directory is just a immutable IPFS file that has links to other IPFS files and directories.
@@ -78,3 +78,40 @@ Writing code is hard, so the less code the better. We can implement all this log
 - The app UI will be written in JS React and present the files in the form of a forum with comments and so on.
 
 ![](https://g.gravizo.com/svg?digraph%20G%20{;%20%20node%20[shape=box]%20%20;%20%20ui%20-%3E%20shf%20-%3E%20ipfs%20-%3E%20{go%20java};%20%20shf%20-%3E%20fs;%20%20fs%20[label=%22Native%20File%20System%22];%20%20ipfs%20[label=%22require(%27ipfs%27)%22];%20%20shf%20[label=%22require(%27shared-folder%27)%22];%20%20ui%20[label=%22React%20JS%20UI%22];%20%20subgraph%20cluster_native%20{%20%20%20%20;%20%20%20%20go%20java;%20%20%20%20graph%20[style=dashed%20color=gray];%20%20}%20%20;})
+
+Interface of the `ipfs` RN module:
+
+```ts
+interface IPFS {
+  add(filepath: string): Promise<string>;
+  p2p: {
+    message: {
+      send(nodeid: string, message: string): void;
+      listen(callback: (message: string) => void): void;
+    }
+  },
+  pubsub: {
+    pub(topic: string, message: string): void;
+    sub(topic: string, callback: (message: string) => void): void;
+  }
+}
+```
+
+Interface of the `shared-folder-ipfs` RN module:
+
+```ts
+interface LocalSharedFolder {
+  id: string;
+  add(fileid: string): Promise<void>;
+  cat(fileid: string): Promise<string>;
+  ls(filter: (fileid: string) => boolean): Promise<string[]>;
+  sync(): Promise<void>;
+  addEventListener(event: string, callback: (fileid: string) => void): void;
+}
+
+interface LocalSharedFolderRepository {
+  add(folderid: string): Promise<LocalSharedFolder>;
+  remove(folderid: string): Promise<void>;
+  list(): Promise<string[]>;  
+}
+```
