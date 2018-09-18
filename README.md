@@ -1,5 +1,9 @@
-# What is this?
+# WTF is this?
 Think about a shared folder on an FTP server where many users can add files. In this folder there is also a special `rules` script that enforces certain rules about what files can be added, who can add them and so on. This shared folder has some disadvantages: there is an admin who is above the rules and all the files are stored in one place. The idea of this project is to use [IPFS](https://ipfs.io) to implement this shared folder pattern without the disadvantages: there won't be an admin and there won't be a single place where the files are stored.
+
+Why not to use IPFS directories? They are immutable. An IPFS directory is just a immutable IPFS file that has links to other IPFS files and directories.
+
+What about [ipfs files](https://docs.ipfs.io/reference/api/cli/#ipfs-files)? TODO
 
 # A typical use case
 
@@ -41,3 +45,22 @@ Say there is already a million users in the forum. Now we download the app, whic
 - `ipfs pubsub pub $FID 3`
 
 ...and so on. `ipfs id` values are evenly distributed, so if the length of the id is 256 bits and there are 1 million users online, the number of replies to `ipfs pubsub pub $FID 96` will be `10^6 * C(96,256)/2^256` = [16](http://m.wolframalpha.com/input/?i=10%5E6+*+256%21%2F%282%5E256+*+96%21+*+%28256+-+96%29%21%29), meaning that there are 16 users online whose `ipfs id` has 96 different bits.
+
+This is a somewhat heavy procedure and is only necessary when we need to start from nothing. However once we have a list of other forum users, we can use them to discover more users.
+
+# Syncing the state
+
+We have been offline for a day and now want to see what cats have been added since last time we were online. We pick a random online user in our list of peers and want to sync the list of cats. If the list is small, we could just send the lists of file `CID`s, but this doesn't scale. Here is a more sophisticated, but still fairly simple, sync protocol:
+
+- We split our list of cats into two groups: `CID`s that start with `0` and `CID`s that start with `1`. The peer does the same thing.
+- We compute hashes of the two groups. So does the peer.
+- We exchange with the two hashes. Now we know which of the two groups are different. Maybe both.
+- We continue subdividing the groups that differ.
+- Once the groups that differ are small enough, we just send the list of `CID`s.
+
+Instead of splitting each group into 2, we can split it into 4 or 8 subgroups. The optimal parameters depend on latency and network speed.
+
+
+
+
+
