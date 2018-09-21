@@ -3,9 +3,9 @@ Think about a shared folder on an FTP server where many users can add files. In 
 
 Why not to use IPFS directories? They are immutable. An IPFS directory is just a immutable IPFS file that has links to other IPFS files and directories.
 
-What about [ipfs files](https://docs.ipfs.io/reference/api/cli/#ipfs-files)? TODO
+What about [ipfs files](https://docs.ipfs.io/reference/api/cli/#ipfs-files)? That's just a more convenient API to create immutable IPFS directories.
 
-# A typical use case
+# How this is supposed to be used
 
 Say we want to start a reddit-like forum about cats:
 
@@ -24,6 +24,112 @@ The `rules` script can be arbitrarily complex:
 - It may even run an ML model to verify that the picture contains a cat and not something else.
 - It may contact a captcha service and sign the post with a RSA key if the user answered the captcha correctly.
 
+## Typical examples of such shared folders
+
+This is a list of typical forum models used on different websites.
+
+### Anybody can post, moderators can ban users and hide posts
+
+The structure of such a forum can look like this:
+
+```
+RULES
+moderators/
+  mrsmith
+  johndoe
+users/
+  1ec45d
+  629bfd
+  009ff2
+  177bbc
+banned-users/
+  629bfd
+hidden-comments/
+  882bc5
+posts/
+  772781/
+    README
+    comments/
+      bbc621
+      882bc5
+      889900
+  20019c/
+    README
+    comments/
+```
+
+The rules ensure the following:
+
+- Only the admin can add files to `moderators` dir. The public RSA key of the admin is in the `RULES` script. Since only the admin can add files there, there is no risk of name conflicts and thus files can have meaningful names. Contents of `moderators/mrsmith` may look like this:
+  ```
+  USER-ID: 177bbc
+  SIGNED-BY: admin b00..17c
+  ```
+- Anybody can add files to `users` dir. Well, the rules present a captcha or something like that to prevent creating users in batches. Since anybody can add files there, the filename must be a long unique hash, which is ensured by the rules too. Files in the `users` dir contain some user info and their public RSA keys. Contents of `users/177bbc`:
+  ```
+  DISPLAY-NAME: mrsmith
+  PUBLIC-KEY: 63c...887
+  ```
+- Only moderators can add files to the `banned-users` dir. The rules check that every file there is signed by a public key from the `moderators` dir. This model implies that once a user is banned, it cannot be un-banned. Contents of `banned-users/629bfd`:
+  ```
+  SIGNED-BY: mrsmith 177bbc 009...725
+  ```
+- `posts` is editable by those who are in `users` and not in `banned-users`. The dirname should be a hash of the `README` file. As a side effect, posts with the same `README` will be merged. The `README` file should have a signature of the user who added it, as well as the user id:
+  ```
+  This is my new cat: ![](http://contoso.com/123/cat.jpg)
+  
+  SIGNED-BY: 177bbc 81b...090
+  ```
+- The same rule for `comments`.
+- `hidden-comments` is editable by `moderators` only. As you see, comments cannot be completely removed or forcibly erased from the local storage of every participant. Instead, the UI for that forum hides the comments, but may present an option to unhide them. The UI may also choose to actually erase the hidden comments from the local storage, but can't force others to do the same.
+
+Now how an attacker may compromise this forum. Since files aren't removable, the only way is to spam. Let's assume that the UI for this forum is written in such a way that it actually deletes files in `hidden-comments` once they become too old, so if the spambot succeeds in adding a file there, it will eventually make the network erase the comment completely. The spambot may disable the `RULES` script locally and may add any files in any order, but it will need to convince others to do the same.
+
+- Adding a file to `hidden-comments` will be rejected because the file needs to be signed by someone from `moderators`.
+- Adding someone to `moderators` won't work because the spambot can't fake the admin's signature.
+
+Thus a spambot cannot do much harm in this forum.
+
+### Invite-only model
+
+In this forum there is a set of approved users and a set of candidates who want to be approved:
+
+```
+RULES
+users/
+  241800
+  288111
+  28cbcc
+  98ccc8
+candidates/
+  213322/
+    241800
+  828cbc/
+```
+
+Here `213322` already got approval from `241800` and now can add himself to `users`.
+
+How can we compromise this system? We need to bring our candidate to the `users` group. Just adding `828cbc` to `users` won't work because we can't fake signatures of real users. However we can add locally a fake user whose signature we know and make it sign our candidate, while the candidate can sign our fake user:
+
+```
+users/
+  111222
+  828cbc
+candidates/
+  111222/
+    828cbc
+  828cbc/
+    111222
+```
+
+Now whoever gets to sync with this copy might be confused because from the `RULES` point of view everything looks correct: all candidates have approvals from those who are approved users. This is where the order of the files becomes important. We can't send all the new files in one batch to a peer in the network. Instead, we have to send the files one by one and the peer will verify them one by one. So we have to choose an order in which we'll be sending the files:
+
+- If we add someone to `users` first, the peer will reject this.
+- If we try to approve our candidate `828cbc` with `111222`, the peer will notice that there is no `users/111222` file yet.
+- If we try to approve our fake user `111222` with `828cbc`, the peer will notice that `828cbc` cannot approve others.
+
+No matter which order we choose, the peer will reject it.
+
 # How this works
 
 Each user runs an IPFS node. When we want to post a new cat, we do the following:
@@ -36,7 +142,7 @@ Each user runs an IPFS node. When we want to post a new cat, we do the following
 
 Now what happens when someone wants to spam in the forum. The spammer may skip the `rules` check and just send new files to other users. However other users will run the `rules` check, find out that the files are bad and the spammer will be blocked by those users.
 
-# Joining the forum
+## Joining the forum
 
 Say there is already a million users in the forum. Now we download the app, which contains the forum id, and want to find a few other users. We can use [ipfs pubsub](https://docs.ipfs.io/reference/api/cli/#ipfs-pubsub) for that. However if we simply use `ipfs pubsub pub $FID "Hello everyone!"` to let online users reply, we may get a million replies, while we need only a few tens. So we use a more sophisticated discovery protocol:
 
@@ -48,7 +154,7 @@ Say there is already a million users in the forum. Now we download the app, whic
 
 This is a somewhat heavy procedure and is only necessary when we need to start from nothing. However once we have a list of other forum users, we can use them to discover more users.
 
-# Syncing the state
+## Syncing the state
 
 We have been offline for a day and now want to see what cats have been added since last time we were online. We pick a random online user in our list of peers and want to sync the list of cats. If the list is small, we could just send the lists of file `CID`s, but this doesn't scale. Here is a more sophisticated, but still fairly simple, sync protocol:
 
@@ -59,6 +165,8 @@ We have been offline for a day and now want to see what cats have been added sin
 - Once the groups that differ are small enough, we just send the list of `CID`s.
 
 Instead of splitting each group into 2, we can split it into 4 or 8 subgroups. The optimal parameters depend on latency and network speed.
+
+Each of the new files need to be verified by the `rules` script. The order of the files matter. However the order of files is local in each node, since it seems impossible to define a global order of files and make it consistent between all the participants. The sender sends the files one by one in the same order it added them earlier, we run the `rules` script on each new file and add it to the local storage. Of course, a spambot may send the files in any order it wants, but we assume that the `rules` script is written in such a way that changing the order won't help to compromise the system.
 
 # Implementation details
 
