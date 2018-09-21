@@ -31,13 +31,15 @@ What a shared folder actually is? It consists of two things:
 - A network of nodes who participate in this shared folder. This is a subset of the IPFS nodes.
 - Each node has a local copy of the shared folder. This copy is partial.
 
-Since we only allow to add files, the complete up to date copy of the shared folder is the union of all the local copies. This complete up to date copy can never be created, though: all the nodes are never online and never stop adding files.
+For simplicity of design (and to make it possible at all), we only allow to add files: the protocol won't allow to remove files or edit them. Thus the complete up to date copy of the shared folder is the union of all the local copies. This complete up to date copy can never be created, though: all the nodes are never online and never stop adding files. Adding a file in this network looks like a wave: there can be multiple waves and the add-only property allows these waves to go thru each other.
 
-Now the internal repsentation of a local copy of the shared folder. Each file is a pair of two things:
+The add-only property is a significant restriction, but it doesn't impact forum-like sites much because everything there is usually written once. It would be much better to have a decentralised git repository editable by everyone with correctness enforced by a pre-submit script. We'd essentially need to implement a peer-to-peer `git pull --rebase && git push` where the remote peer isn't trusted. I don't see a way to make such a system work.
+
+Now the internal repsentation of a local copy of the shared folder. Each file is a pair of two strings:
 - Name. It's quite arbitrary and can look like `foo/bar`.
 - Hash. This is the IPFS CID of the file that `ipfs add` returns.
 
-In order words it's a dictionary that looks like this:
+In other words, it's a dictionary that looks like this:
 
 ```js
 { "foo/bar": "277bbc",
@@ -57,6 +59,10 @@ foo/
 Every shared folder has the `RULES` script that verifies every new file before adding it locally.
 
 In addition to this, the files have a specific order. This is important because `RULES` may accept files if they are added in one order and reject them if they are added in another order. Simple example: if we add first `admins/mrsmith` and then `users/johndoe`, the `RULES` script approves this, but if we add the user first, the script will complain that there are no admins to approve this user.
+
+> Hard question. Two nodes, A and B, have two slightly different sets of files added in different order. What's the correct way to merge them? I feel the smell of [Operational Transformation](https://en.wikipedia.org/wiki/Operational_transformation) here.
+
+> Why not to use the same format [.git](https://git-scm.com/book/en/v2/Git-Internals-Plumbing-and-Porcelain) uses? This would enable all the tools written for git.
 
 ## Typical examples of such shared folders
 
@@ -188,7 +194,7 @@ Say there is already a million users in the forum. Now we download the app, whic
 
 This is a somewhat heavy procedure and is only necessary when we need to start from nothing. However once we have a list of other forum users, we can use them to discover more users.
 
-## Syncing the state
+## Syncing the list of files
 
 We have been offline for a day and now want to see what cats have been added since last time we were online. We pick a random online user in our list of peers and want to sync the list of cats. If the list is small, we could just send the lists of file `CID`s, but this doesn't scale. Here is a more sophisticated, but still fairly simple, sync protocol:
 
