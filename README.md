@@ -24,6 +24,40 @@ The `rules` script can be arbitrarily complex:
 - It may even run an ML model to verify that the picture contains a cat and not something else.
 - It may contact a captcha service and sign the post with a RSA key if the user answered the captcha correctly.
 
+## Internal structure
+
+What a shared folder actually is? It consists of two things:
+
+- A network of nodes who participate in this shared folder. This is a subset of the IPFS nodes.
+- Each node has a local copy of the shared folder. This copy is partial.
+
+Since we only allow to add files, the complete up to date copy of the shared folder is the union of all the local copies. This complete up to date copy can never be created, though: all the nodes are never online and never stop adding files.
+
+Now the internal repsentation of a local copy of the shared folder. Each file is a pair of two things:
+- Name. It's quite arbitrary and can look like `foo/bar`.
+- Hash. This is the IPFS CID of the file that `ipfs add` returns.
+
+In order words it's a dictionary that looks like this:
+
+```js
+{ "foo/bar": "277bbc",
+  "foo/baz": "02800c",
+  "RULES": "82bc77" }
+```
+
+In practice, this dictionary is stored like a usual dir in a file system:
+
+```
+RULES: 82bc77
+foo/
+  bar: 277bbc
+  baz: 02800c
+```
+
+Every shared folder has the `RULES` script that verifies every new file before adding it locally.
+
+In addition to this, the files have a specific order. This is important because `RULES` may accept files if they are added in one order and reject them if they are added in another order. Simple example: if we add first `admins/mrsmith` and then `users/johndoe`, the `RULES` script approves this, but if we add the user first, the script will complain that there are no admins to approve this user.
+
 ## Typical examples of such shared folders
 
 This is a list of typical forum models used on different websites.
