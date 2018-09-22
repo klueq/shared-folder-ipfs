@@ -240,6 +240,22 @@ We have been offline for a day and now want to see what cats have been added sin
 
 Instead of splitting each group into 2, we can split it into 4 or 8 subgroups. The optimal parameters depend on latency and network speed.
 
+```
+      Peer A                 Peer B
+
+06b645 |                          | 06b645
+00f4a0 |-> 728112   !=   dd098c <-| 00f4a0
+00e0ad |                          | 078f11
+
+141599 |                          | 141599
+1d8b4e |                          | 1d8b4e
+1a2287 |-> 88ffc2   ==   88ffc2 <-| 1a2287
+101114 |                          | 101114
+18d1b0 |                          | 18d1b0
+```
+
+In this example the two peers see that they have the same set of files whose hashes start with `1`, but different sets of files whose hashes start with `0`, so they continue with splitting the `0` group.
+
 Each of the new files need to be verified by the `rules` script. The order of the files matter. However the order of files is local in each node, since it seems impossible to define a global order of files and make it consistent between all the participants. The sender sends the files one by one in the same order it added them earlier, we run the `rules` script on each new file and add it to the local storage. Of course, a spambot may send the files in any order it wants, but we assume that the `rules` script is written in such a way that changing the order won't help to compromise the system.
 
 # Implementation details
