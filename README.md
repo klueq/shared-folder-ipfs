@@ -1,7 +1,7 @@
 # What is this?
 Think about a shared folder on an FTP server where many users can add files. In this folder there is also a special `rules` script that enforces certain rules about what files can be added, who can add them and so on. This shared folder has some disadvantages: there is an admin who is above the rules and all the files are stored in one place. The idea of this project is to use [IPFS](https://ipfs.io) to implement this shared folder pattern without the disadvantages: there won't be an admin and there won't be a single place where the files are stored.
 
-Why not to use IPFS directories? They are immutable. An IPFS directory is just a immutable IPFS file that has links to other IPFS files and directories.
+Why not to use IPFS directories? They are immutable. An IPFS directory is just a immutable IPFS file that has links to other IPFS files and directories. An IPFS directory can be thought of as an immutable JSON object where leafs are IPFS files.
 
 What about [ipfs files](https://docs.ipfs.io/reference/api/cli/#ipfs-files)? That's just a more convenient API to create immutable IPFS directories.
 
@@ -35,11 +35,35 @@ For simplicity of design (and to make it possible at all), we only allow to add 
 
 The add-only property is a significant restriction, but it doesn't impact forum-like sites much because everything there is usually written once. It would be much better to have a decentralised git repository editable by everyone with correctness enforced by a pre-submit script. We'd essentially need to implement a peer-to-peer `git pull --rebase && git push` where the remote peer isn't trusted. I don't see a way to make such a system work.
 
-Now the internal repsentation of a local copy of the shared folder. Each file is a pair of two strings:
-- Name. It's quite arbitrary and can look like `foo/bar`.
-- Hash. This is the IPFS CID of the file that `ipfs add` returns.
+Now the internal repsentation of a local copy of the shared folder: it's just a flat list of IPFS files with a special immutable file called `RULES`. The `RULES` script verifies if a new file can be added to the current list of files. This simple structure - a flat list of file hashes - makes it easy to merge partial lists in an efficient manner. This is how it looks:
 
-In other words, it's a dictionary that looks like this:
+```
+RULES
+828990
+8bcc62
+c7aff2
+883000
+```
+
+The fact that it's a flat list doesn't mean that it can only represent flat shared folders. Each file contains two parts:
+- `Name` - it's a string that looks like `foo/bar`.
+- `data` - this is the actual content, like a markdown file.
+
+For example:
+
+```
+$ ipfs ls 8bcc62
+bc0087  7 name
+771caf 12 data
+
+$ ipfs cat bc0087
+foo/bar
+
+$ ipfs cat 771caf
+Hello world!
+```
+
+In other words, a shared folder is a list of name-data pairs:
 
 ```js
 { "foo/bar": "277bbc",
