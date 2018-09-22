@@ -16,6 +16,17 @@ Say we want to start a reddit-like forum about cats:
 - Publish the app and let users download it.
 - Each app instance uses the folder id to find other users of the forum.
 
+![](diag/forum-subnet/g.png)
+
+In this diagram:
+
+- All the nodes are IPFS nodes.
+- Square green nodes participate in the same forum.
+- Solid lines are IPFS connections between nodes.
+- Dotted lines are additional IPFS connections discovered by the forum nodes.
+
+This means that when `a1` wants to add a new file in the forum, it sends its hash to `c1`, `c3` and `b4` and they later send it to `d2`.
+
 The `rules` script can be arbitrarily complex:
 
 - It may just check that a new post contains a description of length 200-500 words.

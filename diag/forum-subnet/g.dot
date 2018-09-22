@@ -1,0 +1,38 @@
+graph G {
+  node [
+    style = filled
+    fillcolor = cadetblue1
+  ]
+
+  subgraph {
+    node [ fillcolor = lawngreen, shape = box ]
+    a1 b4 c1 d2 c3
+  }
+
+  a1 -- a2 -- a3
+  b1 -- b2 -- b3 -- b4
+  c1 -- c2 -- c3 -- c4
+  d1 -- d2 -- d3
+
+  a1 -- b1 -- c1 -- d1
+  a3 -- b4 -- c4 -- d3
+  a1 -- b3
+  b3 -- c3
+  b3 -- c4
+  c2 -- d1
+  c2 -- d2
+  c3 -- d3
+  b2 -- c1
+
+  a1 -- b4 [ style = dotted ]
+  a1 -- c1 [ style = dotted ]
+  c1 -- d2 [ style = dotted ]
+  d2 -- c3 [ style = dotted ]
+  c3 -- b4 [ style = dotted ]
+  c3 -- a1 [ style = dotted ]
+
+  subgraph { rank=same; a1 a2 a3  }
+  subgraph { rank=same; b1 b2 b3 b4  }
+  subgraph { rank=same; c1 c2 c3 c4  }
+  subgraph { rank=same; d1 d2 d3  }
+}
