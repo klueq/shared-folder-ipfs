@@ -38,11 +38,11 @@ The add-only property is a significant restriction, but it doesn't impact forum-
 Now the internal repsentation of a local copy of the shared folder: it's just a flat list of IPFS files:
 
 ```
-0073ff # name:RULES, data:os.exit(0)
-828990 # name:foo/abc, data:123
-8bcc62 # name:foo/bar, data:"Hello world!"
-c7aff2 # name:test12 data:11
-883000 # name:config/data.json, data:{}
+0073ff # { name:"RULES",            data:"os.exit(0)" }
+828990 # { name:"foo/abc",          data:"123" }
+8bcc62 # { name:"foo/bar",          data:"Hello world!" }
+c7aff2 # { name:"test12",           data:"11" }
+883000 # { name:"config/data.json", data:"{}" }
 ```
 
 The fact that it's a flat list doesn't mean that it can only represent flat shared folders. Each file contains two parts:
@@ -63,7 +63,9 @@ $ ipfs cat 771caf
 Hello world!
 ```
 
-In practice, this dictionary is stored like a usual dir in a local file system:
+In other words, a shared folder can be thought of as a list of JSON objects, where each JSON object has `name` and `data` fields. In IPFS terms every text string is a file that has its own hash (IPFS CID) and a group of such fields is called an IPFS directory which has its own hash.
+
+In practice, this dictionary is stored like a usual dir in a local file system, while the IPFS hashes are used to transmit data between peers:
 
 ```
 RULES
@@ -75,7 +77,9 @@ config/
   data.json
 ```
 
-Every shared folder has the `RULES` script that verifies every new file before adding it locally.
+## The rules script
+
+Every shared folder has the `RULES` script that verifies every new file before adding it locally. This script is immutable, just like any other IPFS file. Thus if a mistake is made in it, it cannot be fixed later. However this rules script can contain a minimum bootstrap code that goes to the folder called `scripts` for example, looks there for a specific file and runs it. The rules can be as simple as verifying that every new file has a signature, while the public RSA key is hardcoded in the script.
 
 In addition to this, the files have a specific order. This is important because `RULES` may accept files if they are added in one order and reject them if they are added in another order. Simple example: if we add first `admins/mrsmith` and then `users/johndoe`, the `RULES` script approves this, but if we add the user first, the script will complain that there are no admins to approve this user.
 
