@@ -35,18 +35,18 @@ For simplicity of design (and to make it possible at all), we only allow to add 
 
 The add-only property is a significant restriction, but it doesn't impact forum-like sites much because everything there is usually written once. It would be much better to have a decentralised git repository editable by everyone with correctness enforced by a pre-submit script. We'd essentially need to implement a peer-to-peer `git pull --rebase && git push` where the remote peer isn't trusted. I don't see a way to make such a system work.
 
-Now the internal repsentation of a local copy of the shared folder: it's just a flat list of IPFS files with a special immutable file called `RULES`. The `RULES` script verifies if a new file can be added to the current list of files. This simple structure - a flat list of file hashes - makes it easy to merge partial lists in an efficient manner. This is how it looks:
+Now the internal repsentation of a local copy of the shared folder: it's just a flat list of IPFS files:
 
 ```
-RULES
-828990
-8bcc62
-c7aff2
-883000
+0073ff # name:RULES, data:os.exit(0)
+828990 # name:foo/abc, data:123
+8bcc62 # name:foo/bar, data:"Hello world!"
+c7aff2 # name:test12 data:11
+883000 # name:config/data.json, data:{}
 ```
 
 The fact that it's a flat list doesn't mean that it can only represent flat shared folders. Each file contains two parts:
-- `Name` - it's a string that looks like `foo/bar`.
+- `name` - it's a string that looks like `foo/bar`.
 - `data` - this is the actual content, like a markdown file.
 
 For example:
@@ -63,21 +63,16 @@ $ ipfs cat 771caf
 Hello world!
 ```
 
-In other words, a shared folder is a list of name-data pairs:
-
-```js
-{ "foo/bar": "277bbc",
-  "foo/baz": "02800c",
-  "RULES": "82bc77" }
-```
-
-In practice, this dictionary is stored like a usual dir in a file system:
+In practice, this dictionary is stored like a usual dir in a local file system:
 
 ```
-RULES: 82bc77
+RULES
 foo/
-  bar: 277bbc
-  baz: 02800c
+  bar
+  abc
+test12
+config/
+  data.json
 ```
 
 Every shared folder has the `RULES` script that verifies every new file before adding it locally.
