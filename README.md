@@ -277,54 +277,35 @@ Writing code is hard, so the less code the better. We can implement all this log
 
 ![](diag/react-native/g.png)
 
-Interface of the `ipfs` RN module:
+Possible interface of the `shared-folder` module:
 
 ```ts
-interface IPFS {
-  add(filepath: string): Promise<string>;
-  p2p: {
-    message: {
-      send(nodeid: string, message: string): void;
-      listen(callback: (message: string) => void): void;
-    }
-  },
-  pubsub: {
-    pub(topic: string, message: string): void;
-    sub(topic: string, callback: (message: string) => void): void;
-  }
-}
-```
-
-Interface of the `shared-folder-ipfs` RN module:
-
-```ts
-interface LocalSharedFolder {
-  id: string;
-  add(fileid: string): Promise<void>;
-  cat(fileid: string): Promise<string>;
-  ls(filter: (fileid: string) => boolean): Promise<string[]>;
-  sync(): Promise<void>;
-  addEventListener(event: string, callback: (fileid: string) => void): void;
-}
-
-interface LocalSharedFolderRepository {
-  add(folderid: string): Promise<LocalSharedFolder>;
-  remove(folderid: string): Promise<void>;
-  list(): Promise<string[]>;  
+interface SharedFolder {
+  join(id: string): Promise<void>; // finds other peers
+  sync(): Promise<void>; // syncs the list of files
+  add(path: string, data: string): Promise<void>;
+  get(path: string): Promise<string>;
+  ls(): Iterable<string>;
 }
 ```
 
 # CLI
 
-We can think of a command line interface built on top of the `shared-folder-ipfs` module:
+We can think of a command line interface built on top of the `shared-folder` module:
 
 ```
 $ shdir init
-1e3...447
-$ shdir set-rules /tmp/rules
-$ shdir add /tmp/foo.txt
-554...879
+$ shdir add RULES /tmp/rules
+$ shdir add README.md /tmp/foo.txt
 $ shdir publish
+776b00
 ```
- Under the hood it starts the IPFS daemon.
- 
+
+Then other peers can join the forum:
+
+```
+$ shdir init
+$ shdir join 776b00
+$ shdir add cats/27718/README.md /tmp/cat.md
+$ shdir sync
+```
