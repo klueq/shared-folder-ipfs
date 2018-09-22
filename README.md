@@ -248,7 +248,7 @@ Writing code is hard, so the less code the better. We can implement all this log
 - The additional logic of discovering forum users and syncing the list of files will go to another RN module.
 - The app UI will be written in JS React and present the files in the form of a forum with comments and so on.
 
-![](https://g.gravizo.com/svg?digraph%20G%20{;%20%20node%20[shape=box]%20%20;%20%20ui%20-%3E%20shf%20-%3E%20ipfs%20-%3E%20{go%20java};%20%20shf%20-%3E%20fs;%20%20fs%20[label=%22Native%20File%20System%22];%20%20ipfs%20[label=%22require(%27ipfs%27)%22];%20%20shf%20[label=%22require(%27shared-folder%27)%22];%20%20ui%20[label=%22React%20JS%20UI%22];%20%20subgraph%20cluster_native%20{%20%20%20%20;%20%20%20%20go%20java;%20%20%20%20graph%20[style=dashed%20color=gray];%20%20}%20%20;})
+![](diag/react-native/g.png)
 
 Interface of the `ipfs` RN module:
 

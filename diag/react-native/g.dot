@@ -1,0 +1,20 @@
+digraph G {
+    node [shape=box]
+
+    ui -> shf -> { ipfs fs }
+
+    ipfs -> { go java js }
+
+    fs [label = "Native File System"]
+    ipfs [label = "require('ipfs')"]
+    shf [label = "require('shared-folder')"]
+    ui [label = "React JS UI"]
+    go [label = "go-ipfs"]
+    js [label = "js-ipfs"]
+    java [label = "java-ipfs"]
+
+    subgraph cluster_native {
+        go java js
+        graph [style=dashed color=gray]
+    }
+}
