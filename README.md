@@ -250,6 +250,8 @@ Now whoever gets to sync with this copy might be confused because from the `RULE
 
 No matter which order we choose, the peer will reject it.
 
+There is a reasonable concern that if anybody can propose new candidates, that list may quickly become huge and since everyone in the forum needs to store it, this will be a problem. The solution is that the `candidates` dir doesn't need to be kept in this forum: it can be kept elsewhere, maybe as a shared folder too, and `candidates` here can just point to that place. The users of the forum only need to see that everyone in the `users` dir has a valid signature.
+
 # How this works
 
 Each user runs an IPFS node. When we want to post a new cat, we do the following:
