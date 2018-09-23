@@ -1,0 +1,25 @@
+digraph G {
+  subgraph {
+    node [ style = filled, fillcolor = lawngreen ]
+    x3 p0 p
+  }
+
+  x1 [ label = "06b645" ]
+  x2 [ label = "00f4a0" ]
+  x3 [ label = "00e0ad" ]
+  x4 [ label = "141599" ]
+  x5 [ label = "1d8b4e" ]
+  x6 [ label = "1a2287" ]
+  x7 [ label = "101114" ]
+  x8 [ label = "c8d1b0" ]  
+
+  p [ label = "827bbc" ]
+  p0 [ label = "902787\nprefix:0" ]
+  p1 [ label = "882729\nprefix:1" ]
+  pc [ label = "877000\nprefix:c" ]
+
+  p -> { p0 p1 pc }
+  p0 -> { x1 x2 x3 }
+  p1 -> { x4 x5 x6 x7 }
+  pc -> x8
+}
