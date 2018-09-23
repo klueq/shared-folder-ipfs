@@ -255,7 +255,7 @@ In this diagram:
     - `882729 = H(x:1) = H(141599,1d8b4e,1a2287,101114)`
     - `877000 = H(x:c) = H(c8d1b0)`
 1. `Y` does the same with `y`.
-1. `X` and `Y` see that `v` matches, so they have the same subset of files whose hash starts with `1`. Thus there is no need to sync that subset.
+1. `X` and `Y` see that `x:1` and `y:1` have the same hash `882729`, so there is no need to sync them further.
 1. `X` needs to continue this process recursively with `x:0` and split it into subsets with hash prefixes `00`, `01`, `02` and so on. However it sees that `x:0` has only 3 items, so it just sends the 3 hashes to `Y`. Same with the `x:c` subset.
 1. `Y` does the same with `y:0` and `y:c`.
 1. Now `X` knows that it was missing file `c78f11` and `Y` knows that it was missing file `00e0ad`.
