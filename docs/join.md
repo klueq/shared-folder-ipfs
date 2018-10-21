@@ -18,7 +18,7 @@ This is a somewhat heavy procedure and is only necessary when we need to start f
 
 ## ipfs dht
 
-IPFS exposes the Kademlia DHT API, but in a limited fashion: it doesn't allow to get/set arbitrary keys, only the IPNS ones. It's likely possible to use DHT to build overlay networks.
+IPFS exposes the Kademlia DHT API, but in a limited fashion: it doesn't allow to get/set arbitrary keys, only the IPNS ones. It's [possible](https://jhalderm.com/pub/papers/dht-woot10.pdf) to use DHT to build overlay networks.
 
 ## The bootstrap nodes
 
