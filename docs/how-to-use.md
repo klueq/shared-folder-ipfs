@@ -9,7 +9,7 @@ Say we want to start a reddit-like forum about cats:
 - Publish the app and let users download it.
 - Each app instance uses the folder id to find other users of the forum.
 
-![](diag/forum-subnet/g.png)
+![](../diag/forum-subnet/g.png)
 
 In this diagram:
 
