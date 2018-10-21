@@ -5,17 +5,10 @@ Why not to use IPFS directories? They are immutable. An IPFS directory is just a
 
 What about [ipfs files](https://docs.ipfs.io/reference/api/cli/#ipfs-files)? That's just a more convenient API to create immutable IPFS directories.
 
-# How this is supposed to be used
-
-See [docs/how-to-use.md](docs/how-to-use.md).
-
-## Internal structure
-
-See [docs/internal-structure.md](docs/internal-structure.md).
-
-## The rules script
-
-See [docs/rules-script.md](docs/rules-script.md).
+# Contents
+- [How this is supposed to be used](docs/how-to-use.md)
+- [Internal structure](docs/internal-structure.md)
+- [The rules script](docs/rules-script.md)
 
 ## Typical examples of such shared folders
 
