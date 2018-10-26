@@ -42,12 +42,12 @@ QmRc9TT4Z8p9hMYn9VintdMCnRuB2zEqMXpcVmj99QiLWK
 There are quite a few nodes that have this file. Now node `B` can find online peers and connect:
 
 ```bash
-user1@u320:~/tmp$ ipfs dht findpeer QmRoTJFngpJxWcYVFxR7zw9CCv8sMNmtSKNQ63cxBBNDE5
+$ ipfs dht findpeer QmRoTJFngpJxWcYVFxR7zw9CCv8sMNmtSKNQ63cxBBNDE5
 /ip4/78.x0.x10.x61/tcp/xx993
 /ip6/2001:x70:xf15:x377::x1/tcp/4001
 /ip4/10.x1.x4.x1/tcp/4001
 
-user1@u320:~/tmp$ ipfs ping QmRoTJFngpJxWcYVFxR7zw9CCv8sMNmtSKNQ63cxBBNDE5
+$ ipfs ping QmRoTJFngpJxWcYVFxR7zw9CCv8sMNmtSKNQ63cxBBNDE5
 PING QmRoTJFngpJxWcYVFxR7zw9CCv8sMNmtSKNQ63cxBBNDE5.
 Pong received: time=191.58 ms
 Pong received: time=187.59 ms
