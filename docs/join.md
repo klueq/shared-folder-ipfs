@@ -18,7 +18,43 @@ This is a somewhat heavy procedure and is only necessary when we need to start f
 
 ## ipfs dht
 
-IPFS exposes the Kademlia DHT API, but in a limited fashion: it doesn't allow to get/set arbitrary keys, only the IPNS ones. It's [possible](https://jhalderm.com/pub/papers/dht-woot10.pdf) to use DHT to build overlay networks.
+It's [possible](https://jhalderm.com/pub/papers/dht-woot10.pdf) to use DHT to build overlay networks. There is one particularly simple and robust way of building overlay networks that's easy to overlook because it's so simple. IPFS uses Kademlia DHT to store and discover file hashes. We can say that the folder id is a IPFS file and participants try to discover this file to find other participants who have this file. In other words, say we have two nodes: `A` and `B`. Right now they are in two random locations on the globe and can't possibly now IP addresses of each other. Both nodes are interested in folder with id `test`. Node `A` saves this text to a file and computes its IPFS CID:
+
+```bash
+$ echo "test" > temp.dat
+$ ipfs add temp.dat
+added QmeomffUNfmQy76CQGy9NdmqEnnHU9soCexBnGU3ezPHVH temp.dat
+```
+
+Node `B` queries the Kademlia DHT for this hash:
+
+```bash
+$ ipfs dht findprovs QmeomffUNfmQy76CQGy9NdmqEnnHU9soCexBnGU3ezPHVH
+QmRoTJFngpJxWcYVFxR7zw9CCv8sMNmtSKNQ63cxBBNDE5
+QmREdUzUz8Xe4CemvijdJo5Tfu7U8rZobetYL1QU6JAwCA
+QmRJgS7y7eRyKk5xndo8LZwWZexPaTP1xPqnHUU1KWp8hd
+QmSTv2nurvLozbdx24DZvwNEZmMbESqrrx8gy5diX1acvt
+QmSWPWEqHAQkgebiiVUuhePqgF9y6DPMA5BSXhWJ6Rqdmh
+QmSbUpPAT5Z3EhBCtrcXmtNWkjkaRqPNmaHR9pMpKHzSUH
+QmRc9TT4Z8p9hMYn9VintdMCnRuB2zEqMXpcVmj99QiLWK
+```
+
+There are quite a few nodes that have this file. Now node `B` can find online peers and connect:
+
+```bash
+user1@u320:~/tmp$ ipfs dht findpeer QmRoTJFngpJxWcYVFxR7zw9CCv8sMNmtSKNQ63cxBBNDE5
+/ip4/78.x0.x10.x61/tcp/xx993
+/ip6/2001:x70:xf15:x377::x1/tcp/4001
+/ip4/10.x1.x4.x1/tcp/4001
+
+user1@u320:~/tmp$ ipfs ping QmRoTJFngpJxWcYVFxR7zw9CCv8sMNmtSKNQ63cxBBNDE5
+PING QmRoTJFngpJxWcYVFxR7zw9CCv8sMNmtSKNQ63cxBBNDE5.
+Pong received: time=191.58 ms
+Pong received: time=187.59 ms
+Pong received: time=183.44 ms
+```
+
+It's worth noting that most peers have dynamic IP addresses and are hidden behind NAT (WiFi, etc.), but their IPFS Peer IDs are permanent, unless they decide to create another Peer ID.
 
 ## The bootstrap nodes
 
